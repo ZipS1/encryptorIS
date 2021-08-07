@@ -1,4 +1,5 @@
 from PIL import Image # TODO: make seed
+import sys
 
 
 class Encryptor:
@@ -15,10 +16,7 @@ class Encryptor:
         return ascii_seq
 
     def _try_get_image(self, image_path):
-        try:
-            image = Image.open(image_path)
-        except FileNotFoundError:
-            print("Файл не найден")
+        image = Image.open(image_path)
         image.load()
         return image
 
@@ -58,10 +56,11 @@ class Encryptor:
             pix_rgb = image.getpixel(self.curpix)
             encrypted_rgb = self._encrypt_pixel(char, pix_rgb)
             image.putpixel(self.curpix, encrypted_rgb)
+            print(self.curpix, encrypted_rgb)
             self._set_next_pixel(image)
 
         self._put_end_symbol(image)
-        image.save(encrypted_image_name)
+        image.save(encrypted_image_name, "JPEG")
 
     def _put_end_symbol(self, image):
         pix_rgb = image.getpixel(self.curpix)
@@ -93,12 +92,5 @@ class Encryptor:
 if __name__ == '__main__':
     enc = Encryptor()
 
-    with open("lipsum.txt", "r") as f:
-        text = f.read()
-
-    # enc.encrypt("img.jpg","Lorem Ipsum", "r.jpg")
-    print(enc.decrypt("r.jpg"))
-
-
-
-
+    enc.encrypt("img.jpg","Lorem Ipsum", "enc.jpg")
+    # print(enc.decrypt("r.jpg"))
