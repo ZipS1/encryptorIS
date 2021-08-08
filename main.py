@@ -10,6 +10,9 @@ RGB каналы пикселя также переводятся в двоич�
 """
 
 from PIL import Image  # TODO: make seed
+import os
+from sys import platform
+import sys
 
 
 class Encryptor:
@@ -92,11 +95,89 @@ class Encryptor:
         return text
 
 
-def main():
-    enc = Encryptor()
+class ConsoleUI():
+    def __init__(self):
+        self.enc = Encryptor()
 
-    # enc.encrypt("img.jpg", "Dolored Ambridge", "enc.bmp")
-    print(enc.decrypt("enc.bmp"))
+    def run(self):
+        self._clearwin()
+        print("Welcome to Picture Encryptor")
+        print("All files should be in same directory as this program")
+        user_choice = self._choose_option(("encrypt", "decrypt"))
+        if user_choice == "encrypt":
+            self._encrypt_UI()
+        else:
+            self._decrypt_UI()
+
+    def _choose_option(self, options_list): # DRY principle disturbance
+        print("Enter number of option:")
+        for i in range(len(options_list)):
+            print(f"{i+1} - {options_list[i]}")
+
+        valid_inputs = [str(i) for i in range(1, len(options_list)+ 1)]
+
+        user_choice = input(": ")
+        while user_choice not in valid_inputs:
+            print("Incorrect input!")
+            user_choice = input(": ")
+
+        return options_list[int(user_choice) - 1]
+
+    def _encrypt_UI(self):
+        self._clearwin()
+        image_name = input("Enter picture name: ")
+
+        text_options = ("manual text input", "load text from file")
+        user_choice = self._choose_option(text_options)
+
+        if user_choice == "manual text input":
+            text = input("Enter text: ")
+        else:
+            filename = input("Enter filename: ")
+            with open(filename, "r") as f:
+                text = f.read()
+
+        output_image = input("Enter encrypted image filename: ")
+
+        print("Encrypting...")
+        self.enc.encrypt(image_name, text, output_image)
+        print("Encrypting completed successfully!")
+        os.system("pause")
+        sys.exit()
+
+    def _decrypt_UI(self):
+        self._clearwin()
+        image_name = input("Enter picture name: ")
+
+        text_options = ("console output", "file output")
+        user_choice = self._choose_option(text_options)
+
+        print("Decrypting...")
+        text = self.enc.decrypt(image_name)
+
+        print("Decrypting completed successfully!")
+        if user_choice == "console output":
+            print("\n", text)
+        else:
+            filename = input("Enter output filename: ")
+            with open(filename, "w") as f:
+                w.write(text)
+        os.system("pause")
+        sys.exit()
+
+    def _clearwin(self):
+        if platform == "win32":
+            os.system("cls")
+        elif platform in ("linux", "darwin"):
+            os.system("clear")
+        else:
+            print("Error: unknown OS")
+
+
+def main():
+    UI = ConsoleUI()
+    UI.run()
+
 
 if __name__ == '__main__':
     main()
