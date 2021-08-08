@@ -30,7 +30,7 @@ class Encryptor:
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
-        bin_char = bin(ascii_char)[2:].rjust(8, "0")  # convert dec to 8 bit bin
+        bin_char = bin(ascii_char)[2:].rjust(8, "0")
         rcomp = bin_char[:3]
         gcomp = bin_char[3:5]
         bcomp = bin_char[5:]
@@ -55,11 +55,10 @@ class Encryptor:
             pix_rgb = image.getpixel(self.curpix)
             encrypted_rgb = self._encrypt_pixel(char, pix_rgb)
             image.putpixel(self.curpix, encrypted_rgb)
-            print(self.curpix, encrypted_rgb)
             self._set_next_pixel(image)
 
         self._put_end_symbol(image)
-        image.save(encrypted_image_name, "BMP")  # quality=100, subsampling=0
+        image.save(encrypted_image_name, "BMP")
 
     def _put_end_symbol(self, image):
         pix_rgb = image.getpixel(self.curpix)
@@ -88,7 +87,9 @@ class Encryptor:
         return text
 
 
-if __name__ == '__main__':
-    enc = Encryptor()
+def main():
+    print("Welcome to the Picture Encryptor!")
+    print("Use it by import Encryptor class")
 
-    enc.encrypt("img.jpg", "Lorem Ipsum", "enc.bmp")
+if __name__ == '__main__':
+    main()
