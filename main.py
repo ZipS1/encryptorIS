@@ -6,12 +6,6 @@ class Encryptor:
         self.curpix = None
         self.image = None
 
-    def _text_to_ascii(self, text):
-        ascii_seq = []
-        for char in text:
-            ascii_seq.append(ord(char))
-        return ascii_seq
-
     def _setup_image(self, image_path):
         self.image = Image.open(image_path)
         self.image.load()
@@ -90,8 +84,8 @@ class Encryptor:
 def main():
     enc = Encryptor()
 
-    # enc.encrypt("img.jpg", "Lorem Ipsum", "enc.bmp")
-    # print(enc.decrypt("enc.bmp"))
+    # enc.encrypt("img.jpg", "Dolored Ambridge", "enc.bmp")
+    print(enc.decrypt("enc.bmp"))
 
 if __name__ == '__main__':
     main()
