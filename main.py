@@ -3,10 +3,8 @@ from PIL import Image  # TODO: make seed
 
 class Encryptor:
     def __init__(self):
-        self.curpix = (0, 0)
-
-    def _set_to_start(self):
-        self.curpix = (0, 0)
+        self.curpix = None
+        self.image = None
 
     def _text_to_ascii(self, text):
         ascii_seq = []
@@ -14,19 +12,21 @@ class Encryptor:
             ascii_seq.append(ord(char))
         return ascii_seq
 
-    def _try_get_image(self, image_path):
-        image = Image.open(image_path)
-        image.load()
-        return image
+    def _setup_image(self, image_path):
+        self.image = Image.open(image_path)
+        self.image.load()
 
-    def _set_next_pixel(self, image):
-        xsize, ysize = image.size
+    def _get_next_pixel(self):
+        if self.curpix is None:
+            return (0, 0)
+
+        xsize, ysize = self.image.size
         x, y = self.curpix
 
         if x < xsize - 1:
-            self.curpix = (x + 1, y)
+            return (x + 1, y)
         else:
-            self.curpix = (0, y + 1)
+            return (0, y + 1)
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
@@ -48,22 +48,22 @@ class Encryptor:
         return tuple(new_rgb)
 
     def encrypt(self, image_path, text, encrypted_image_name):
-        self._set_to_start()
-        image = self._try_get_image(image_path)
+        self._setup_image(image_path)
+        self.curpix = self._get_next_pixel()
 
         for char in text:
-            pix_rgb = image.getpixel(self.curpix)
+            pix_rgb = self.image.getpixel(self.curpix)
             encrypted_rgb = self._encrypt_pixel(char, pix_rgb)
-            image.putpixel(self.curpix, encrypted_rgb)
-            self._set_next_pixel(image)
+            self.image.putpixel(self.curpix, encrypted_rgb)
+            self.curpix = self._get_next_pixel()
 
-        self._put_end_symbol(image)
-        image.save(encrypted_image_name, "BMP")
+        self._put_end_symbol()
+        self.image.save(encrypted_image_name, "BMP")
 
-    def _put_end_symbol(self, image):
-        pix_rgb = image.getpixel(self.curpix)
+    def _put_end_symbol(self):
+        pix_rgb = self.image.getpixel(self.curpix)
         encrypted_rgb = self._encrypt_pixel("\0", pix_rgb)
-        image.putpixel(self.curpix, encrypted_rgb)
+        self.image.putpixel(self.curpix, encrypted_rgb)
 
     def _decrypt_pixel(self, pix_rgb):
         pix_rgb = list(pix_rgb)
@@ -73,23 +73,25 @@ class Encryptor:
         return chr(int(bin_char, 2))
 
     def decrypt(self, image_path):
-        self._set_to_start()
-        image = self._try_get_image(image_path)
+        self._setup_image(image_path)
+        self.curpix = self._get_next_pixel()
 
         text = ""
         symbol = ""
 
         while symbol != "\0":
-            rgb = image.getpixel(self.curpix)
+            rgb = self.image.getpixel(self.curpix)
             symbol = self._decrypt_pixel(rgb)
             text += symbol
-            self._set_next_pixel(image)
+            self.curpix = self._get_next_pixel()
         return text
 
 
 def main():
-    print("Welcome to the Picture Encryptor!")
-    print("Use it by import Encryptor class")
+    enc = Encryptor()
+
+    # enc.encrypt("img.jpg", "Lorem Ipsum", "enc.bmp")
+    # print(enc.decrypt("enc.bmp"))
 
 if __name__ == '__main__':
     main()
