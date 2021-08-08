@@ -1,5 +1,4 @@
-from PIL import Image # TODO: make seed
-import sys
+from PIL import Image  # TODO: make seed
 
 
 class Encryptor:
@@ -31,13 +30,13 @@ class Encryptor:
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
-        bin_char = bin(ascii_char)[2:].rjust(8, "0") # convert dec to 8 bit bin
+        bin_char = bin(ascii_char)[2:].rjust(8, "0")  # convert dec to 8 bit bin
         rcomp = bin_char[:3]
         gcomp = bin_char[3:5]
         bcomp = bin_char[5:]
         return (rcomp, gcomp, bcomp)
 
-    def  _encrypt_pixel(self, char, pix_rgb):
+    def _encrypt_pixel(self, char, pix_rgb):
         ascii_comps = self._split_char_to_channels(char)
         new_rgb = []
         for ch_ind in range(3):
@@ -60,7 +59,7 @@ class Encryptor:
             self._set_next_pixel(image)
 
         self._put_end_symbol(image)
-        image.save(encrypted_image_name, "JPEG")
+        image.save(encrypted_image_name, "BMP")  # quality=100, subsampling=0
 
     def _put_end_symbol(self, image):
         pix_rgb = image.getpixel(self.curpix)
@@ -92,5 +91,4 @@ class Encryptor:
 if __name__ == '__main__':
     enc = Encryptor()
 
-    enc.encrypt("img.jpg","Lorem Ipsum", "enc.jpg")
-    # print(enc.decrypt("r.jpg"))
+    enc.encrypt("img.jpg", "Lorem Ipsum", "enc.bmp")
