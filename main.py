@@ -108,7 +108,7 @@ class ConsoleUI():
     def run(self):
         self._clearwin()
         print("Welcome to Picture Encryptor")
-        print("All files should be"
+        print("All files should be "
               "in the same directory as this program")
         self._run_menu(self.PROGRAM_OPTIONS)
 
@@ -163,7 +163,7 @@ class ConsoleUI():
         return text
 
     def _print_text(self, text):
-        print(f"\nTEXT: {text}")
+        print(f"\nTEXT BELOW\n{text}")
 
     def _file_output(self, text):
         filename  = input("\nEnter output file name: ")
