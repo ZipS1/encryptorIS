@@ -13,28 +13,29 @@ from PIL import Image  # TODO: make seed
 import os
 from sys import platform
 import sys
+import random as rd
 
 
 class Encryptor:
     def __init__(self):
         self.curpix = None
         self.image = None
+        self.used_pixels = []
 
-    def _setup_image(self, image_path):
+    def _setup(self, image_path, seed):
         self.image = Image.open(image_path)
         self.image.load()
+        self.used_pixels = []
+        rd.seed(seed)
 
     def _get_next_pixel(self):
-        if self.curpix is None:
-            return (0, 0)
-
         xsize, ysize = self.image.size
-        x, y = self.curpix
 
-        if x < xsize - 1:
-            return (x + 1, y)
-        else:
-            return (0, y + 1)
+        curpix = (rd.randint(0,xsize-1),rd.randint(0,ysize-1))
+        while curpix in self.used_pixels:
+            curpix = (rd.randint(0,xsize-1),rd.randint(0,ysize-1))
+        self.used_pixels.append(curpix)
+        return curpix
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
@@ -55,8 +56,8 @@ class Encryptor:
         new_rgb = [int(i, 2) for i in new_rgb]
         return tuple(new_rgb)
 
-    def encrypt(self, image_path, text, encrypted_image_name):
-        self._setup_image(image_path)
+    def encrypt(self, image_path, text, encrypted_image_name, seed):
+        self._setup(image_path, seed)
         self.curpix = self._get_next_pixel()
 
         for char in text:
@@ -80,8 +81,8 @@ class Encryptor:
         bin_char = pix_rgb[0][-3:] + pix_rgb[1][-2:] + pix_rgb[2][-3:]
         return chr(int(bin_char, 2))
 
-    def decrypt(self, image_path):
-        self._setup_image(image_path)
+    def decrypt(self, image_path, seed):
+        self._setup(image_path, seed)
         self.curpix = self._get_next_pixel()
 
         text = ""
@@ -100,8 +101,8 @@ class ConsoleUI():
         self.enc = Encryptor()
         self.PROGRAM_OPTIONS = {"encrypt": self._encrypt_UI,
                                 "decrypt": self._decrypt_UI}
-        self.TEXT_INPUT_OPTIONS = {"manual input": self._input_text,
-                                "load from file": self._text_from_file}
+        self.TEXT_INPUT_OPTIONS = {"manual text input": self._input_text,
+                                "load text from file": self._text_from_file}
         self.TEXT_OUTPUT_OPTIONS = {"console output": self._print_text,
                                      "file output": self._file_output}
 
@@ -133,23 +134,27 @@ class ConsoleUI():
         self._clearwin()
         image_name = input("Enter picture name: ")
         text = self._run_menu(self.TEXT_INPUT_OPTIONS)
+        seed = input("\nEnter seed: ")
         output_image = input("\nEnter encrypted image filename: ")
 
         print("\nEncrypting...")
-        self.enc.encrypt(image_name, text, output_image)
+        self.enc.encrypt(image_name, text, output_image, seed)
         print("Encrypting completed successfully!")
         os.system("pause")
+        self._clearwin()
         sys.exit()
 
     def _decrypt_UI(self):
         self._clearwin()
         image_name = input("Enter picture name: ")
+        seed = input("\nEnter seed: ")
         print("Decrypting...")
-        text = self.enc.decrypt(image_name)
+        text = self.enc.decrypt(image_name, seed)
         print("Decrypting completed successfully!")
 
         self._run_menu(self.TEXT_OUTPUT_OPTIONS, text)
         os.system("pause")
+        self._clearwin()
         sys.exit()
 
     def _input_text(self):
