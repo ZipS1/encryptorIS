@@ -102,7 +102,7 @@ class ConsoleUI():
     def run(self):
         self._clearwin()
         print("Welcome to Picture Encryptor")
-        print("All files should be in same directory as this program")
+        print("All files should be in the same directory as this program")
         user_choice = self._choose_option(("encrypt", "decrypt"))
         if user_choice == "encrypt":
             self._encrypt_UI()
@@ -110,7 +110,7 @@ class ConsoleUI():
             self._decrypt_UI()
 
     def _choose_option(self, options_list): # DRY principle disturbance
-        print("Enter number of option:")
+        print("\nEnter number of option:")
         for i in range(len(options_list)):
             print(f"{i+1} - {options_list[i]}")
 
@@ -157,7 +157,7 @@ class ConsoleUI():
 
         print("Decrypting completed successfully!")
         if user_choice == "console output":
-            print("\n", text)
+            print(f"\n{text}")
         else:
             filename = input("Enter output filename: ")
             with open(filename, "w") as f:
