@@ -98,48 +98,44 @@ class Encryptor:
 class ConsoleUI():
     def __init__(self):
         self.enc = Encryptor()
+        self.PROGRAM_OPTIONS = {"encrypt": self._encrypt_UI,
+                                "decrypt": self._decrypt_UI}
+        self.TEXT_INPUT_OPTIONS = {"manual input": self._input_text,
+                                "load from file": self._text_from_file}
+        self.TEXT_OUTPUT_OPTIONS = {"console output": self._print_text,
+                                     "file output": self._file_output}
 
     def run(self):
         self._clearwin()
         print("Welcome to Picture Encryptor")
-        print("All files should be in the same directory as this program")
-        user_choice = self._choose_option(("encrypt", "decrypt"))
-        if user_choice == "encrypt":
-            self._encrypt_UI()
-        else:
-            self._decrypt_UI()
+        print("All files should be"
+              "in the same directory as this program")
+        self._run_menu(self.PROGRAM_OPTIONS)
 
-    def _choose_option(self, options_list): # DRY principle disturbance
+    def _run_menu(self, options_dict, *args):
+        """Runs menu where user choosing option, then run fucntion
+        providing this option. Also passes option arguments if needed.
+        """
         print("\nEnter number of option:")
-        for i in range(len(options_list)):
-            print(f"{i+1} - {options_list[i]}")
+        for i in range(len(options_dict)):
+            print(f"{i+1} - {list(options_dict.keys())[i]}")
 
-        valid_inputs = [str(i) for i in range(1, len(options_list)+ 1)]
+        valid_inputs = [str(i) for i in range(1, len(options_dict)+ 1)]
 
         user_choice = input(": ")
         while user_choice not in valid_inputs:
             print("Incorrect input!")
             user_choice = input(": ")
 
-        return options_list[int(user_choice) - 1]
+        return list(options_dict.values())[int(user_choice)-1](*args)
 
     def _encrypt_UI(self):
         self._clearwin()
         image_name = input("Enter picture name: ")
+        text = self._run_menu(self.TEXT_INPUT_OPTIONS)
+        output_image = input("\nEnter encrypted image filename: ")
 
-        text_options = ("manual text input", "load text from file")
-        user_choice = self._choose_option(text_options)
-
-        if user_choice == "manual text input":
-            text = input("Enter text: ")
-        else:
-            filename = input("Enter filename: ")
-            with open(filename, "r") as f:
-                text = f.read()
-
-        output_image = input("Enter encrypted image filename: ")
-
-        print("Encrypting...")
+        print("\nEncrypting...")
         self.enc.encrypt(image_name, text, output_image)
         print("Encrypting completed successfully!")
         os.system("pause")
@@ -148,22 +144,32 @@ class ConsoleUI():
     def _decrypt_UI(self):
         self._clearwin()
         image_name = input("Enter picture name: ")
-
-        text_options = ("console output", "file output")
-        user_choice = self._choose_option(text_options)
-
         print("Decrypting...")
         text = self.enc.decrypt(image_name)
-
         print("Decrypting completed successfully!")
-        if user_choice == "console output":
-            print(f"\n{text}")
-        else:
-            filename = input("Enter output filename: ")
-            with open(filename, "w") as f:
-                w.write(text)
+
+        self._run_menu(self.TEXT_OUTPUT_OPTIONS, text)
         os.system("pause")
         sys.exit()
+
+    def _input_text(self):
+        return input("\nEnter text: ")
+
+    def _text_from_file(self):
+        filename = input("\nEnter filename: ")
+        with open(filename, "r") as f:
+            text = f.read()
+
+        return text
+
+    def _print_text(self, text):
+        print(f"\nTEXT: {text}")
+
+    def _file_output(self, text):
+        filename  = input("\nEnter output file name: ")
+        with open(filename, "w") as f:
+            f.write(text)
+        print(f"Text was written to {filename}")
 
     def _clearwin(self):
         if platform == "win32":
