@@ -9,9 +9,8 @@ RGB каналы пикселя также переводятся в двоич�
 каждого канала
 """
 
-from PIL import Image  # TODO: make seed
+from PIL import Image
 import os
-from sys import platform
 import sys
 import random as rd
 
@@ -31,9 +30,9 @@ class Encryptor:
     def _get_next_pixel(self):
         xsize, ysize = self.image.size
 
-        curpix = (rd.randint(0,xsize-1),rd.randint(0,ysize-1))
+        curpix = (rd.randint(0, xsize-1), rd.randint(0, ysize-1))
         while curpix in self.used_pixels:
-            curpix = (rd.randint(0,xsize-1),rd.randint(0,ysize-1))
+            curpix = (rd.randint(0, xsize-1), rd.randint(0, ysize-1))
         self.used_pixels.append(curpix)
         return curpix
 
@@ -76,7 +75,7 @@ class Encryptor:
 
     def _decrypt_pixel(self, pix_rgb):
         pix_rgb = list(pix_rgb)
-        pix_rgb = [bin(i)[2:].rjust(8,"0") for i in pix_rgb]
+        pix_rgb = [bin(i)[2:].rjust(8, "0") for i in pix_rgb]
 
         bin_char = pix_rgb[0][-3:] + pix_rgb[1][-2:] + pix_rgb[2][-3:]
         return chr(int(bin_char, 2))
@@ -99,6 +98,7 @@ class Encryptor:
 class ConsoleUI():
     def __init__(self):
         self.enc = Encryptor()
+        self.UI_WIDTH = 30
         self.PROGRAM_OPTIONS = {
                          "encrypt": self._encrypt_UI,
                          "decrypt": self._decrypt_UI}
@@ -124,7 +124,7 @@ class ConsoleUI():
         for i in range(len(options_dict)):
             print(f"{i+1} - {list(options_dict.keys())[i]}")
 
-        valid_inputs = [str(i) for i in range(1, len(options_dict)+ 1)]
+        valid_inputs = [str(i) for i in range(1, len(options_dict) + 1)]
 
         user_choice = input(": ")
         while user_choice not in valid_inputs:
@@ -171,18 +171,19 @@ class ConsoleUI():
         return text
 
     def _print_text(self, text):
-        print(f"\nTEXT BELOW\n{text}")
+        prompt = "TEXT".center(self.UI_WIDTH, "-")
+        print(f"\n{prompt}\n{text}")
 
     def _file_output(self, text):
-        filename  = input("\nEnter output file name: ")
+        filename = input("\nEnter output file name: ")
         with open(filename, "w") as f:
             f.write(text)
         print(f"Text was written to {filename}")
 
     def _clearwin(self):
-        if platform == "win32":
+        if sys.platform == "win32":
             os.system("cls")
-        elif platform in ("linux", "darwin"):
+        elif sys.platform in ("linux", "darwin"):
             os.system("clear")
         else:
             print("Error: unknown OS")
