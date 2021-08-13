@@ -19,22 +19,19 @@ class Encryptor:
     def __init__(self):
         self.curpix = None
         self.image = None
-        self.used_pixels = []
+        self.pixels_queue = []
 
     def _setup(self, image_path, seed):
         self.image = Image.open(image_path)
         self.image.load()
-        self.used_pixels = []
+        x, y = self.image.size
+        self.pixels_queue = [(i, j) for i in range(x) for j in range(y)]
         rd.seed(seed)
+        rd.shuffle(self.pixels_queue)
 
     def _get_next_pixel(self):
-        xsize, ysize = self.image.size
-
-        curpix = (rd.randint(0, xsize-1), rd.randint(0, ysize-1))
-        while curpix in self.used_pixels:
-            curpix = (rd.randint(0, xsize-1), rd.randint(0, ysize-1))
-        self.used_pixels.append(curpix)
-        return curpix
+        pixel = self.pixels_queue.pop(0)
+        return pixel
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
