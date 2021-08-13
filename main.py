@@ -76,7 +76,7 @@ class Encryptor:
 
     def _decrypt_pixel(self, pix_rgb):
         pix_rgb = list(pix_rgb)
-        pix_rgb = [bin(i)[2:] for i in pix_rgb]
+        pix_rgb = [bin(i)[2:].rjust(8,"0") for i in pix_rgb]
 
         bin_char = pix_rgb[0][-3:] + pix_rgb[1][-2:] + pix_rgb[2][-3:]
         return chr(int(bin_char, 2))
@@ -99,12 +99,15 @@ class Encryptor:
 class ConsoleUI():
     def __init__(self):
         self.enc = Encryptor()
-        self.PROGRAM_OPTIONS = {"encrypt": self._encrypt_UI,
-                                "decrypt": self._decrypt_UI}
-        self.TEXT_INPUT_OPTIONS = {"manual text input": self._input_text,
-                                "load text from file": self._text_from_file}
-        self.TEXT_OUTPUT_OPTIONS = {"console output": self._print_text,
-                                     "file output": self._file_output}
+        self.PROGRAM_OPTIONS = {
+                         "encrypt": self._encrypt_UI,
+                         "decrypt": self._decrypt_UI}
+        self.TEXT_INPUT_OPTIONS = {
+                         "manual text input": self._input_text,
+                         "load text from file": self._text_from_file}
+        self.TEXT_OUTPUT_OPTIONS = {
+                         "console output": self._print_text,
+                         "file output": self._file_output}
 
     def run(self):
         self._clearwin()
