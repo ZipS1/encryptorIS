@@ -57,6 +57,10 @@ class Encryptor:
 
     def encrypt(self, image_path, text, encrypted_image_name, seed):
         self._setup(image_path, seed)
+        enc_possible = self._check_size(self.image, text)
+        if  not enc_possible:
+            raise ValueError("Text is too long "
+                             "for this picture to encrypt")
         self.curpix = self._get_next_pixel()
 
         for char in text:
@@ -94,11 +98,19 @@ class Encryptor:
             self.curpix = self._get_next_pixel()
         return text
 
+    def _check_size(self, image, text):
+        x, y = image.size
+        image_size = x * y
+
+        if image_size < len(text):
+            return False
+        return True
+
 
 class ConsoleUI():
     def __init__(self):
         self.enc = Encryptor()
-        self.UI_WIDTH = 30
+        self.UI_WIDTH = 45
         self.PROGRAM_OPTIONS = {
                          "encrypt": self._encrypt_UI,
                          "decrypt": self._decrypt_UI}
@@ -141,11 +153,13 @@ class ConsoleUI():
         output_image = input("\nEnter encrypted image filename: ")
 
         print("\nEncrypting...")
-        self.enc.encrypt(image_name, text, output_image, seed)
-        print("Encrypting completed successfully!")
-        os.system("pause")
-        self._clearwin()
-        sys.exit()
+        try:
+            self.enc.encrypt(image_name, text, output_image, seed)
+        except ValueError as error:
+            print(error)
+        else:
+            print("Encrypting completed successfully!")
+        self._UI_exit()
 
     def _decrypt_UI(self):
         self._clearwin()
@@ -156,9 +170,7 @@ class ConsoleUI():
         print("Decrypting completed successfully!")
 
         self._run_menu(self.TEXT_OUTPUT_OPTIONS, text)
-        os.system("pause")
-        self._clearwin()
-        sys.exit()
+        self._UI_exit()
 
     def _input_text(self):
         return input("\nEnter text: ")
@@ -187,6 +199,11 @@ class ConsoleUI():
             os.system("clear")
         else:
             print("Error: unknown OS")
+
+    def _UI_exit(self):
+        os.system("pause")
+        self._clearwin()
+        sys.exit()
 
 
 def main():
