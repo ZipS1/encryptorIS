@@ -8,7 +8,6 @@ RGB каналы пикселя также переводятся в двоич�
 Далее эти части вставляются в младшие разряды двоичного представления
 каждого канала
 """
-
 from PIL import Image
 import os
 import sys
@@ -126,7 +125,7 @@ class ConsoleUI():
         self._run_menu(self.PROGRAM_OPTIONS)
 
     def _run_menu(self, options_dict, *args):
-        """Runs menu where user choosing option, then run fucntion
+        """Runs menu where user choosing an option, then run function
         providing this option. Also passes option arguments if needed.
         """
         print("\nEnter number of option:")
@@ -176,7 +175,6 @@ class ConsoleUI():
         filename = input("\nEnter filename: ")
         with open(filename, "r") as f:
             text = f.read()
-
         return text
 
     def _print_text(self, text):
