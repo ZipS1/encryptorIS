@@ -29,7 +29,10 @@ class Encryptor:
         rd.shuffle(self.pixels_queue)
 
     def _get_next_pixel(self):
-        pixel = self.pixels_queue.pop(0)
+        if self.pixels_queue:
+            pixel = self.pixels_queue.pop(0)
+        else:
+            raise IndexError("Can't find end symbol")
         return pixel
 
     def _split_char_to_channels(self, char):
@@ -57,18 +60,18 @@ class Encryptor:
         if  not enc_possible:
             raise ValueError("Text is too long "
                              "for this picture to encrypt")
-        self.curpix = self._get_next_pixel()
 
         for char in text:
+            self.curpix = self._get_next_pixel()
             pix_rgb = self.image.getpixel(self.curpix)
             encrypted_rgb = self._encrypt_pixel(char, pix_rgb)
             self.image.putpixel(self.curpix, encrypted_rgb)
-            self.curpix = self._get_next_pixel()
 
         self._put_end_symbol()
         self.image.save(encrypted_image_name, "BMP")
 
     def _put_end_symbol(self):
+        self.curpix = self._get_next_pixel()
         pix_rgb = self.image.getpixel(self.curpix)
         encrypted_rgb = self._encrypt_pixel("\0", pix_rgb)
         self.image.putpixel(self.curpix, encrypted_rgb)
@@ -82,25 +85,23 @@ class Encryptor:
 
     def decrypt(self, image_path, seed):
         self._setup(image_path, seed)
-        self.curpix = self._get_next_pixel()
 
         text = ""
         symbol = ""
 
-        while symbol != "\0":
+        while True:
+            self.curpix = self._get_next_pixel()
             rgb = self.image.getpixel(self.curpix)
             symbol = self._decrypt_pixel(rgb)
+            if symbol == "\0":
+                break
             text += symbol
-            self.curpix = self._get_next_pixel()
         return text
 
     def _check_size(self, image, text):
         x, y = image.size
-        image_size = x * y
-
-        if image_size < len(text):
-            return False
-        return True
+        image_pixcount = x * y
+        return image_pixcount >= len(text)
 
 
 class ConsoleUI():
@@ -162,8 +163,12 @@ class ConsoleUI():
         image_name = input("Enter picture name: ")
         seed = input("\nEnter seed: ")
         print("Decrypting...")
-        text = self.enc.decrypt(image_name, seed)
-        print("Decrypting completed successfully!")
+        try:
+            text = self.enc.decrypt(image_name, seed)
+        except IndexError as error:
+            print(error)
+        else:
+            print("Decrypting completed successfully!")
 
         self._run_menu(self.TEXT_OUTPUT_OPTIONS, text)
         self._UI_exit()
