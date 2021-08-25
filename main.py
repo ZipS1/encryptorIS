@@ -44,7 +44,8 @@ class Encryptor:
     def _update_pix_queue(self, length):
         if self.pixels:
             if len(self.pixels) >= length:
-                self.pix_queue = [self.pixels.pop(rd.randrange(len(self.pixels))) for _ in range(length)]
+                self.pix_queue = [self.pixels.pop
+                       (rd.randrange(len(self.pixels))) for _ in range(length)]
             else:
                 self.pix_queue = rd.shuffle(self.pixels)
                 self.pixels = []
