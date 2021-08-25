@@ -12,28 +12,44 @@ from PIL import Image
 import os
 import sys
 import random as rd
+from itertools import product
 
 
 class Encryptor:
     def __init__(self):
+        self.CHUNK_SIZE = 100
         self.curpix = None
         self.image = None
-        self.pixels_queue = []
+        self.pix_queue = []
+        self.pixels = []
 
-    def _setup(self, image_path, seed):
+    def _setup(self, image_path, seed, queue_length=None):
+        if queue_length is None:
+            queue_length = self.CHUNK_SIZE
+
         self.image = Image.open(image_path)
         self.image.load()
         x, y = self.image.size
-        self.pixels_queue = [(i, j) for i in range(x) for j in range(y)]
+        self.pixels = list(product(range(x), range(y)))
         rd.seed(seed)
-        rd.shuffle(self.pixels_queue)
+        self._update_pix_queue(queue_length)
 
     def _get_next_pixel(self):
-        if self.pixels_queue:
-            pixel = self.pixels_queue.pop(0)
-        else:
-            raise IndexError("Can't find end symbol")
+        if len(self.pix_queue) == 0:
+            self._update_pix_queue(self.CHUNK_SIZE)
+
+        pixel = self.pix_queue.pop(0)
         return pixel
+
+    def _update_pix_queue(self, length):
+        if self.pixels:
+            if len(self.pixels) >= length:
+                self.pix_queue = [self.pixels.pop(rd.randrange(len(self.pixels))) for _ in range(length)]
+            else:
+                self.pix_queue = rd.shuffle(self.pixels)
+                self.pixels = []
+        else:
+            raise ValueError("No pixels left to encrypt")
 
     def _split_char_to_channels(self, char):
         ascii_char = ord(char)
@@ -43,7 +59,7 @@ class Encryptor:
         bcomp = bin_char[5:]
         return (rcomp, gcomp, bcomp)
 
-    def _encrypt_pixel(self, char, pix_rgb):
+    def _encrypt_rgb(self, char, pix_rgb):
         ascii_comps = self._split_char_to_channels(char)
         new_rgb = []
         for ch_ind in range(3):
@@ -55,8 +71,9 @@ class Encryptor:
         return tuple(new_rgb)
 
     def encrypt(self, image_path, text, encrypted_image_name, seed):
-        self._setup(image_path, seed)
-        enc_possible = self._check_size(self.image, text)
+        msg_length = len(text) + 1
+        self._setup(image_path, seed, msg_length)
+        enc_possible = self._check_size(self.image, msg_length)
         if  not enc_possible:
             raise ValueError("Text is too long "
                              "for this picture to encrypt")
@@ -64,7 +81,7 @@ class Encryptor:
         for char in text:
             self.curpix = self._get_next_pixel()
             pix_rgb = self.image.getpixel(self.curpix)
-            encrypted_rgb = self._encrypt_pixel(char, pix_rgb)
+            encrypted_rgb = self._encrypt_rgb(char, pix_rgb)
             self.image.putpixel(self.curpix, encrypted_rgb)
 
         self._put_end_symbol()
@@ -73,7 +90,7 @@ class Encryptor:
     def _put_end_symbol(self):
         self.curpix = self._get_next_pixel()
         pix_rgb = self.image.getpixel(self.curpix)
-        encrypted_rgb = self._encrypt_pixel("\0", pix_rgb)
+        encrypted_rgb = self._encrypt_rgb("\0", pix_rgb)
         self.image.putpixel(self.curpix, encrypted_rgb)
 
     def _decrypt_pixel(self, pix_rgb):
@@ -98,10 +115,10 @@ class Encryptor:
             text += symbol
         return text
 
-    def _check_size(self, image, text):
+    def _check_size(self, image, message_length):
         x, y = image.size
         image_pixcount = x * y
-        return image_pixcount >= len(text)
+        return image_pixcount >= message_length
 
 
 class ConsoleUI():
